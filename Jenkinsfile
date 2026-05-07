@@ -7,19 +7,17 @@ pipeline {
         IMAGE_TAG      = "${env.BRANCH_NAME == 'prod' ? 'prod' : 'dev'}"
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Test') {
             steps {
                 sh '''
-                    pip3 install -r app/requirements-test.txt
-                    python3 -m pytest app/test_app.py -v
-                '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+
+                     pip install --upgrade pip
+                     pip install -r app/requirements-test.txt
+
+                     python -m pytest app/test_app.py -v
+                 '''
             }
         }
 
