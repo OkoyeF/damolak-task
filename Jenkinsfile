@@ -8,6 +8,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -17,8 +18,13 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    pip3 install -r app/requirements-test.txt
-                    python3 -m pytest app/test_app.py -v
+                    python3 -m venv venv
+                    . venv/bin/activate
+
+                    pip install --upgrade pip
+                    pip install -r app/requirements-test.txt
+
+                    python -m pytest app/test_app.py -v
                 '''
             }
         }
@@ -30,9 +36,6 @@ pipeline {
                     string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     sh '''
-                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-
                         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                         ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
                         ECR_IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
@@ -56,9 +59,6 @@ pipeline {
                     string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     sh '''
-                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-
                         ECR_IMAGE_URI=$(cat ecr_image_uri.txt)
                         chmod +x scripts/deploy.sh
                         ./scripts/deploy.sh $IMAGE_TAG $ECR_IMAGE_URI $AWS_REGION
@@ -81,8 +81,3 @@ pipeline {
         }
     }
 }
-
-
-   
-
- 
