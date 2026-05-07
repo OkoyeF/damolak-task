@@ -2,7 +2,7 @@ name: Build, Test and Deploy
 
 on:
   push:
-    branches: [main, prod]
+    branches: [dev]
 
 env:
   AWS_REGION:     eu-west-2

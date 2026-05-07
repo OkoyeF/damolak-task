@@ -17,21 +17,22 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    pip install -r app/requirements-test.txt
-                    python -m pytest app/test_app.py -v
+                    pip3 install -r app/requirements-test.txt
+                    python3 -m pytest app/test_app.py -v
                 '''
             }
         }
 
         stage('Build & Push') {
             steps {
-                withCredentials([[
-                    $class:            'AmazonWebServicesCredentialsBinding',
-                    credentialsId:     'aws-credentials',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
+                withCredentials([
+                    string(credentialsId: 'aws-access-key-id',     variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
                     sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+
                         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                         ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
                         ECR_IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
@@ -50,13 +51,14 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                withCredentials([[
-                    $class:            'AmazonWebServicesCredentialsBinding',
-                    credentialsId:     'aws-credentials',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
+                withCredentials([
+                    string(credentialsId: 'aws-access-key-id',     variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
                     sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+
                         ECR_IMAGE_URI=$(cat ecr_image_uri.txt)
                         chmod +x scripts/deploy.sh
                         ./scripts/deploy.sh $IMAGE_TAG $ECR_IMAGE_URI $AWS_REGION
@@ -79,3 +81,8 @@ pipeline {
         }
     }
 }
+
+
+   
+
+ 
