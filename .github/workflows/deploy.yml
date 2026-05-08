@@ -46,9 +46,7 @@ jobs:
 
       - name: Set image tag
         id: tag
-        run: |
-          TAG=$([[ "${{ github.ref_name }}" == "prod" ]] && echo "prod" || echo "dev")
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        run: echo "tag=dev" >> $GITHUB_OUTPUT
 
       - name: Build and push
         id: build

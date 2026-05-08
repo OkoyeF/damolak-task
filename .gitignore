@@ -23,5 +23,8 @@ venv/
 # Docker
 *.tar
 
+# IDE
+.vscode/
+
 # OS
 .DS_Store
